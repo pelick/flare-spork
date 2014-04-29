@@ -127,6 +127,22 @@ fi
 # CLASSPATH initially contains $PIG_CONF_DIR
 CLASSPATH="${PIG_CONF_DIR}"
 CLASSPATH=${CLASSPATH}:$JAVA_HOME/lib/tools.jar
+
+# add spark jar in classpath
+CLASSPATH=${CLASSPATH}:$SCALA_HOME/lib/scala-library.jar
+#CLASSPATH=${CLASSPATH}:$SCALA_HOME/lib/akka-actors.jar
+CLASSPATH=${CLASSPATH}:$SCALA_HOME/lib/diffutils.jar
+CLASSPATH=${CLASSPATH}:$SCALA_HOME/lib/jline.jar
+#CLASSPATH=${CLASSPATH}:$SCALA_HOME/lib/scala-actors.jar
+CLASSPATH=${CLASSPATH}:$SCALA_HOME/lib/scala-actors-migration.jar
+CLASSPATH=${CLASSPATH}:$SCALA_HOME/lib/scala-compiler.jar
+CLASSPATH=${CLASSPATH}:$SCALA_HOME/lib/scala-partest.jar
+CLASSPATH=${CLASSPATH}:$SCALA_HOME/lib/scalap.jar
+CLASSPATH=${CLASSPATH}:$SCALA_HOME/lib/scala-reflect.jar
+CLASSPATH=${CLASSPATH}:$SCALA_HOME/lib/scala-swing.jar
+CLASSPATH=${CLASSPATH}:$SCALA_HOME/lib/typesafe-config.jar
+CLASSPATH=${CLASSPATH}:/home/work/local/pig-0.12.0-spork/lib/spark/spark-assembly_2.10-0.9.1-hadoop2.2.0.jar
+
 if [ "$includeHCatalog" == "true" ]; then
   # need to provide the hcatalog jar file path as well as
   # the location of the hive jars on which hcatalog depends
@@ -404,3 +420,5 @@ else
 fi
 shopt -u nullglob
 shopt -u extglob
+
+
