@@ -31,7 +31,7 @@
     <property name="pigsmoke.pom" value="${basedir}/ivy/pigsmoke.pom" />
     <property name="pigunit.pom" value="${basedir}/ivy/pigunit.pom" />
     <property name="piggybank.pom" value="${basedir}/ivy/piggybank.pom" />
-    <property name="pig.version" value="0.12.1" />
+    <property name="pig.version" value="0.12.0" />
     <property name="pig.version.suffix" value="-SNAPSHOT" />
     <property name="version" value="${pig.version}${pig.version.suffix}" />
     <property name="final.name" value="${name}-${version}" />
@@ -191,8 +191,10 @@
     -->
     <property name="hbaseversion" value="94" />
 
+    
     <property name="src.shims.dir" value="${basedir}/shims/src/hadoop${hadoopversion}" />
     <property name="src.shims.test.dir" value="${basedir}/shims/test/hadoop${hadoopversion}" />
+    
 
     <property name="hadoop.jar" value="hadoop-core-${hadoop-core.version}.jar" />
     <property name="asfrepo" value="https://repository.apache.org"/>
@@ -283,6 +285,10 @@
             <fileset dir="${lib.dir}">
                 <include name="**.*jar"/>
             </fileset>
+            <!-- SPORK -->
+            <fileset dir="${lib.dir}/spark">
+                <include name="**.*jar"/>
+            </fileset>
         </path>
         <taskdef name="eclipse"
                  classname="prantl.ant.eclipse.EclipseTask"
@@ -313,6 +319,9 @@
     <!-- setup the classpath -->
     <path id="classpath">
         <path refid="compile.classpath"/>
+        <fileset dir="${lib.dir}/spark">
+            <include name="**.*jar"/>
+        </fileset>
         <fileset dir="${lib.dir}" includes="*.jar"/>
         <fileset file="${ivy.lib.dir}/${zookeeper.jarfile}"/>
         <fileset dir="${ivy.lib.dir}" includes="*.jar"/>
@@ -326,6 +335,8 @@
     <path id="test.classpath">
         <!-- need to put this first, otherwise junit-3 testcases can break -->
         <pathelement location="${ivy.lib.dir}/junit-3.8.1.jar"/>
+        <pathelement location="${lib.dir}/spark/mesos-*.jar"/>
+
         <pathelement location="${build.classes}"/>
         <pathelement location="${test.src.dir}"/>
         <pathelement location="${piggybank.jarfile}"/>
@@ -349,6 +360,20 @@
             <include name="trevni-avro-${avro.version}.jar"/>
             <include name="snappy-java-${snappy.version}.jar"/>
             <include name="asm*.jar"/>
+
+            <!-- SPORK -->
+            <include name="spark-core*.jar" />
+            <include name="scala-library*.jar" />
+            <include name="jetty*7.5.3*.jar" />
+            <include name="fastutil*.jar" />
+            <include name="protobuf*.jar" />
+            <include name="asm*.jar" />
+            <include name="slf4j*.jar" />
+            <include name="servlet-api*.jar" />
+            <include name="compress-lzf*.jar" />
+            <include name="mesos*.jar"/>
+            <!-- /SPORK -->
+
         </patternset>
     </fileset>
 
@@ -371,6 +396,20 @@
             <include name="trevni-avro-${avro.version}.jar"/>
             <include name="snappy-java-${snappy.version}.jar"/>
             <include name="asm*.jar"/>
+
+            <!-- SPORK -->
+            <include name="spark-core*.jar" />
+            <include name="scala-library*.jar" />
+            <include name="jetty*7.5.3*.jar" />
+            <include name="fastutil*.jar" />
+            <include name="protobuf*.jar" />
+            <include name="asm*.jar" />
+            <include name="slf4j*.jar" />
+            <include name="servlet-api*.jar" />
+            <include name="compress-lzf*.jar" />
+            <include name="mesos-*.jar"/>
+            <!-- /SPORK -->
+
         </patternset>
     </fileset>
 
