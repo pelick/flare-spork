@@ -10,9 +10,7 @@ What Spork brings me ?
 Spork did some work long ago and no updates recently. <br/>
 Spork created SparkLauncher under <strong>org.apache.pig.backend.hadoop.executionengine.spark</strong> to support spark backend when launching Pig like:
 
-<code>
-pig -x spark
-</code>
+    pig -x spark
 
 Also, it supported several Convertors to mapping Physical Ops to Spark RDD computations, which can be enlarged. <br/>
 Besides, Spork modified build.xml and ivy things to include Spark and Scala dependencies. 
@@ -27,9 +25,8 @@ As far as I know, Spork may be in progress in Twitter. So I am trying out Pig on
 How to Run ?
 ===========
 You can build flare-spork (better like this to support Hadoop2.2.0)
-<code>
-ant clean jar-withouthadoop -Dhadoopversion=23
-</code>
+
+    ant clean jar-withouthadoop -Dhadoopversion=23
 
 Then, do some System settings and enable pig in spark mode 
 
