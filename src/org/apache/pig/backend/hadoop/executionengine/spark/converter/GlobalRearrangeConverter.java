@@ -9,6 +9,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.pig.backend.executionengine.ExecException;
 import org.apache.pig.backend.hadoop.executionengine.physicalLayer.relationalOperators.POGlobalRearrange;
+import org.apache.pig.backend.hadoop.executionengine.spark.ScalaUtil;
 import org.apache.pig.backend.hadoop.executionengine.spark.SparkUtil;
 import org.apache.pig.data.Tuple;
 import org.apache.pig.data.TupleFactory;
@@ -41,19 +42,20 @@ public class GlobalRearrangeConverter implements POConverter<Tuple, Tuple, POGlo
     public RDD<Tuple> convert(List<RDD<Tuple>> predecessors, POGlobalRearrange physicalOperator) throws IOException {
         SparkUtil.assertPredecessorSizeGreaterThan(predecessors, physicalOperator, 0);
         int parallelism = SparkUtil.getParallelism(predecessors, physicalOperator);
-        if (LOG.isDebugEnabled())
-            LOG.info("Parallelism for Spark groupBy: " + parallelism);
+        if (LOG.isDebugEnabled()) {
+        	LOG.info("Parallelism for Spark groupBy: " + parallelism);
+        }
         if (predecessors.size() == 1) {
             //GROUP
             return predecessors.get(0)
                 // group by key
-                .groupBy(GET_KEY_FUNCTION, parallelism, SparkUtil.getClassTag(Object.class))
+                .groupBy(GET_KEY_FUNCTION, parallelism, ScalaUtil.getClassTag(Object.class))
                 // convert result to a tuple (key, { values })
-                .map(GROUP_TUPLE_FUNCTION, SparkUtil.getClassTag(Tuple.class));
+                .map(GROUP_TUPLE_FUNCTION, ScalaUtil.getClassTag(Tuple.class));
         } else {
-            //COGROUP
+            // COGROUP
             // each pred returns (index, key, value)
-            ClassTag<Tuple2<Object, Tuple>> tuple2ClassTag = SparkUtil.<Object, Tuple>getTuple2ClassTag();
+            ClassTag<Tuple2<Object, Tuple>> tuple2ClassTag = ScalaUtil.<Object, Tuple>getTuple2ClassTag();
 
             List<RDD<Tuple2<Object, Tuple>>> rddPairs = Lists.newArrayList();
             for (RDD<Tuple> rdd : predecessors) {
@@ -63,12 +65,11 @@ public class GlobalRearrangeConverter implements POConverter<Tuple, Tuple, POGlo
 
             // Something's wrong with the type parameters of CoGroupedRDD
             // key and value are the same type ???
-            // fix by pelick
             CoGroupedRDD<Object> coGroupedRDD = new CoGroupedRDD<Object>(
             		(Seq) JavaConversions.asScalaBuffer(rddPairs), new HashPartitioner(parallelism));
 
             RDD<Tuple2<Object, Seq<Seq<Tuple>>>> rdd = (RDD<Tuple2<Object, Seq<Seq<Tuple>>>>)(Object) coGroupedRDD;
-            return rdd.map(TO_GROUP_KEY_VALUE_FUNCTION,  SparkUtil.getClassTag(Tuple.class));
+            return rdd.map(TO_GROUP_KEY_VALUE_FUNCTION,  ScalaUtil.getClassTag(Tuple.class));
         }
     }
 
@@ -111,12 +112,12 @@ public class GlobalRearrangeConverter implements POConverter<Tuple, Tuple, POGlo
         public Tuple2<Object, Tuple> apply(Tuple t) {
             try {
                 // (index, key, value)
-                LOG.debug("ToKeyValueFunction in "+t);
+                LOG.debug("ToKeyValueFunction in "+ t);
                 Object key = t.get(1);
-                Tuple value = (Tuple)t.get(2); //value
+                Tuple value = (Tuple)t.get(2);
                 // (key, value)
                 Tuple2<Object, Tuple> out = new Tuple2<Object, Tuple>(key, value);
-                LOG.debug("ToKeyValueFunction out "+out);
+                LOG.debug("ToKeyValueFunction out "+ out);
                 return out;
             } catch (ExecException e) {
                 throw new RuntimeException(e);

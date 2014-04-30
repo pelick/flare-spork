@@ -12,6 +12,7 @@ import org.apache.pig.backend.hadoop.executionengine.mapReduceLayer.JobControlCo
 import org.apache.pig.backend.hadoop.executionengine.mapReduceLayer.PigOutputFormat;
 import org.apache.pig.backend.hadoop.executionengine.physicalLayer.PhysicalOperator;
 import org.apache.pig.backend.hadoop.executionengine.physicalLayer.relationalOperators.POStore;
+import org.apache.pig.backend.hadoop.executionengine.spark.ScalaUtil;
 import org.apache.pig.backend.hadoop.executionengine.spark.SparkUtil;
 import org.apache.pig.data.Tuple;
 import org.apache.pig.impl.PigContext;
@@ -45,21 +46,20 @@ public class StoreConverter implements POConverter<Tuple, Tuple2<Text, Tuple>, P
         SparkUtil.assertPredecessorSize(predecessors, physicalOperator, 1);
         RDD<Tuple> rdd = predecessors.get(0);
         // convert back to KV pairs
-        RDD<Tuple2<Text, Tuple>> rddPairs = rdd.map(FROM_TUPLE_FUNCTION, SparkUtil.<Text, Tuple>getTuple2ClassTag());
-        PairRDDFunctions<Text, Tuple> pairRDDFunctions = new PairRDDFunctions<Text, Tuple>(rddPairs,
-                SparkUtil.getClassTag(Text.class), SparkUtil.getClassTag(Tuple.class));
+        RDD<Tuple2<Text, Tuple>> rddPairs = rdd.map(FROM_TUPLE_FUNCTION, ScalaUtil.<Text, Tuple>getTuple2ClassTag());
+        PairRDDFunctions<Text, Tuple> pairRDDFunctions = 
+        		new PairRDDFunctions<Text, Tuple>(rddPairs, ScalaUtil.getClassTag(Text.class), ScalaUtil.getClassTag(Tuple.class));
 
         JobConf storeJobConf = SparkUtil.newJobConf(pigContext);
         POStore poStore = configureStorer(storeJobConf, physicalOperator);
 
-        pairRDDFunctions.saveAsNewAPIHadoopFile(poStore.getSFile().getFileName(),
-                    Text.class, Tuple.class, PigOutputFormat.class, storeJobConf);
+        pairRDDFunctions.saveAsNewAPIHadoopFile(poStore.getSFile().getFileName(), 
+        		Text.class, Tuple.class, PigOutputFormat.class, storeJobConf);
 
         return rddPairs;
     }
 
-    private static POStore configureStorer(JobConf jobConf,
-            PhysicalOperator physicalOperator) throws IOException {
+    private static POStore configureStorer(JobConf jobConf, PhysicalOperator physicalOperator) throws IOException {
         ArrayList<POStore> storeLocations = Lists.newArrayList();
         POStore poStore = (POStore)physicalOperator;
         storeLocations.add(poStore);

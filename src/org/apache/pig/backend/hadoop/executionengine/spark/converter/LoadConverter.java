@@ -13,6 +13,7 @@ import org.apache.pig.backend.hadoop.executionengine.mapReduceLayer.PigInputForm
 import org.apache.pig.backend.hadoop.executionengine.physicalLayer.PhysicalOperator;
 import org.apache.pig.backend.hadoop.executionengine.physicalLayer.plans.PhysicalPlan;
 import org.apache.pig.backend.hadoop.executionengine.physicalLayer.relationalOperators.POLoad;
+import org.apache.pig.backend.hadoop.executionengine.spark.ScalaUtil;
 import org.apache.pig.backend.hadoop.executionengine.spark.SparkUtil;
 import org.apache.pig.data.Tuple;
 import org.apache.pig.impl.PigContext;
@@ -53,7 +54,7 @@ public class LoadConverter implements POConverter<Tuple, Tuple, POLoad> {
     @Override
     public RDD<Tuple> convert(List<RDD<Tuple>> predecessorRdds, POLoad poLoad) throws IOException {
 //        if (predecessors.size()!=0) {
-//            throw new RuntimeException("Should not have predecessors for Load. Got : "+predecessors);
+//            throw new RuntimeException("Should not have predecessors for Load. Got : " + predecessors);
 //        }
 
         JobConf loadJobConf = SparkUtil.newJobConf(pigContext);
@@ -65,7 +66,7 @@ public class LoadConverter implements POConverter<Tuple, Tuple, POLoad> {
                 Text.class, Tuple.class, loadJobConf);
 
         // map to get just RDD<Tuple>
-        return hadoopRDD.map(TO_TUPLE_FUNCTION, SparkUtil.getClassTag(Tuple.class));
+        return hadoopRDD.map(TO_TUPLE_FUNCTION, ScalaUtil.getClassTag(Tuple.class));
     }
 
     private static class ToTupleFunction extends AbstractFunction1<Tuple2<Text, Tuple>, Tuple>
@@ -86,8 +87,8 @@ public class LoadConverter implements POConverter<Tuple, Tuple, POLoad> {
      * @return
      * @throws java.io.IOException
      */
-    private static JobConf configureLoader(PhysicalPlan physicalPlan,
-                                           POLoad poLoad, JobConf jobConf) throws IOException {
+    private static JobConf configureLoader(PhysicalPlan physicalPlan, POLoad poLoad, JobConf jobConf) 
+    		throws IOException {
 
         Job job = new Job(jobConf);
         LoadFunc loadFunc = poLoad.getLoadFunc();
@@ -96,14 +97,14 @@ public class LoadConverter implements POConverter<Tuple, Tuple, POLoad> {
 
         // stolen from JobControlCompiler
         ArrayList<FileSpec> pigInputs = new ArrayList<FileSpec>();
-        //Store the inp filespecs
+        // Store the inp filespecs
         pigInputs.add(poLoad.getLFile());
 
         ArrayList<List<OperatorKey>> inpTargets = Lists.newArrayList();
         ArrayList<String> inpSignatures = Lists.newArrayList();
         ArrayList<Long> inpLimits = Lists.newArrayList();
-        //Store the target operators for tuples read
-        //from this input
+        // Store the target operators for tuples read
+        // from this input
         List<PhysicalOperator> loadSuccessors = physicalPlan.getSuccessors(poLoad);
         List<OperatorKey> loadSuccessorsKeys = Lists.newArrayList();
         if(loadSuccessors!=null){

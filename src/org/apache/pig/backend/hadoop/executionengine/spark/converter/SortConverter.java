@@ -8,6 +8,7 @@ import java.util.List;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.pig.backend.hadoop.executionengine.physicalLayer.relationalOperators.POSort;
+import org.apache.pig.backend.hadoop.executionengine.spark.ScalaUtil;
 import org.apache.pig.backend.hadoop.executionengine.spark.SparkUtil;
 import org.apache.pig.data.Tuple;
 import org.apache.spark.rdd.OrderedRDDFunctions;
@@ -19,7 +20,6 @@ import scala.collection.JavaConversions;
 import scala.math.Ordered;
 import scala.runtime.AbstractFunction1;
 
-@SuppressWarnings("serial")
 public class SortConverter implements POConverter<Tuple, Tuple, POSort> {
     private static final Log LOG = LogFactory.getLog(SortConverter.class);
 
@@ -31,21 +31,21 @@ public class SortConverter implements POConverter<Tuple, Tuple, POSort> {
         SparkUtil.assertPredecessorSize(predecessors, sortOperator, 1);
         RDD<Tuple> rdd = predecessors.get(0);
         RDD<Tuple2<Tuple, Object>> rddPair =
-                rdd.map(new ToKeyValueFunction(),
-                        SparkUtil.<Tuple, Object>getTuple2ClassTag());
-        // fix by pelick
+                rdd.map(new ToKeyValueFunction(), ScalaUtil.<Tuple, Object>getTuple2ClassTag());
+        
         RDD<Tuple2<Tuple, Object>> sorted =
         	new OrderedRDDFunctions<Tuple, Object, Tuple2<Tuple, Object>>(
         			rddPair,
         			new SortFunction(sortOperator.getmComparator()),
-                    SparkUtil.getClassTag(Tuple.class),
-                    SparkUtil.getClassTag(Object.class),
-                    SparkUtil.<Tuple, Object>getTuple2ClassTag()
+        			ScalaUtil.getClassTag(Tuple.class),
+        			ScalaUtil.getClassTag(Object.class),
+        			ScalaUtil.<Tuple, Object>getTuple2ClassTag()
             ).sortByKey(true, rddPair.partitions().length);
-        return sorted.mapPartitions(TO_VALUE_FUCTION, false, SparkUtil.getClassTag(Tuple.class));
+        return sorted.mapPartitions(TO_VALUE_FUCTION, false, ScalaUtil.getClassTag(Tuple.class));
     }
 
-    private static class SortFunction extends AbstractFunction1<Tuple, Ordered<Tuple>> implements Serializable {
+    @SuppressWarnings("serial")
+	private static class SortFunction extends AbstractFunction1<Tuple, Ordered<Tuple>> implements Serializable {
         private final Comparator<Tuple> comparator;
 
         public SortFunction(Comparator<Tuple> comparator) {
@@ -59,7 +59,8 @@ public class SortConverter implements POConverter<Tuple, Tuple, POSort> {
 
     }
 
-    private static class ToValueFuction extends AbstractFunction1<Iterator<Tuple2<Tuple, Object>>, Iterator<Tuple>> implements Serializable {
+    @SuppressWarnings("serial")
+	private static class ToValueFuction extends AbstractFunction1<Iterator<Tuple2<Tuple, Object>>, Iterator<Tuple>> implements Serializable {
         @Override
         public Iterator<Tuple> apply(Iterator<Tuple2<Tuple, Object>> input) {
             return JavaConversions.asScalaIterator(new IteratorTransform<Tuple2<Tuple, Object>, Tuple>(JavaConversions.asJavaIterator(input)) {
@@ -71,7 +72,8 @@ public class SortConverter implements POConverter<Tuple, Tuple, POSort> {
         }
     }
 
-    private static class OrderedTuple implements Ordered<Tuple>, Serializable {
+    @SuppressWarnings("serial")
+	private static class OrderedTuple implements Ordered<Tuple>, Serializable {
         private final Tuple tuple;
         private final Comparator<Tuple> comparator;
 
@@ -112,7 +114,8 @@ public class SortConverter implements POConverter<Tuple, Tuple, POSort> {
 
     }
 
-    private static class ToKeyValueFunction extends AbstractFunction1<Tuple,Tuple2<Tuple, Object>> implements Serializable {
+    @SuppressWarnings("serial")
+	private static class ToKeyValueFunction extends AbstractFunction1<Tuple,Tuple2<Tuple, Object>> implements Serializable {
 
         @Override
         public Tuple2<Tuple, Object> apply(Tuple t) {
