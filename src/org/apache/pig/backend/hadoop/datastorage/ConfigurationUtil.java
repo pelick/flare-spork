@@ -18,7 +18,6 @@
 
 package org.apache.pig.backend.hadoop.datastorage;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Enumeration;
 import java.util.Iterator;

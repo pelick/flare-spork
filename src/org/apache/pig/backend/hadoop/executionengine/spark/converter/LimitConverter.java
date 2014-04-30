@@ -7,6 +7,7 @@ import java.util.List;
 import org.apache.pig.backend.executionengine.ExecException;
 import org.apache.pig.backend.hadoop.executionengine.physicalLayer.Result;
 import org.apache.pig.backend.hadoop.executionengine.physicalLayer.relationalOperators.POLimit;
+import org.apache.pig.backend.hadoop.executionengine.spark.ScalaUtil;
 import org.apache.pig.backend.hadoop.executionengine.spark.SparkUtil;
 import org.apache.pig.data.Tuple;
 import org.apache.spark.rdd.RDD;
@@ -15,7 +16,6 @@ import scala.collection.Iterator;
 import scala.collection.JavaConversions;
 import scala.runtime.AbstractFunction1;
 
-@SuppressWarnings({ "serial"})
 public class LimitConverter implements POConverter<Tuple, Tuple, POLimit> {
 
     @Override
@@ -23,11 +23,13 @@ public class LimitConverter implements POConverter<Tuple, Tuple, POLimit> {
             throws IOException {
         SparkUtil.assertPredecessorSize(predecessors, poLimit, 1);
         RDD<Tuple> rdd = predecessors.get(0);
+        
         LimitFunction limitFunction = new LimitFunction(poLimit);
-        return rdd.mapPartitions(limitFunction, false, SparkUtil.getClassTag(Tuple.class));
+        return rdd.mapPartitions(limitFunction, false, ScalaUtil.getClassTag(Tuple.class));
     }
 
-    private static class LimitFunction extends AbstractFunction1<Iterator<Tuple>, Iterator<Tuple>> implements Serializable {
+    @SuppressWarnings("serial")
+	private static class LimitFunction extends AbstractFunction1<Iterator<Tuple>, Iterator<Tuple>> implements Serializable {
 
         private final POLimit poLimit;
 

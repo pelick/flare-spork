@@ -9,12 +9,6 @@ import org.apache.pig.impl.util.ObjectSerializer;
 import org.apache.pig.impl.util.UDFContext;
 import org.apache.spark.rdd.RDD;
 
-import scala.Tuple2;
-import scala.collection.JavaConversions;
-import scala.collection.Seq;
-import scala.reflect.ClassTag;
-import scala.reflect.ClassTag$;
-
 import java.io.IOException;
 import java.util.List;
 
@@ -24,33 +18,13 @@ import java.util.List;
  *
  */
 public class SparkUtil {
-
-	public static void main(String[] args) {
-		System.out.print(ClassTag$.MODULE$.apply(Tuple.class));
-	}
 	
-	/**
-	 * Scala 2.10 use ClassTag to replace ClassManifest
-	 */
-    public static <T> ClassTag<T> getClassTag(Class<T> clazz) {
-    	return ClassTag$.MODULE$.apply(clazz);
-    }
-    
-    @SuppressWarnings("unchecked")
-	public static <K, V> ClassTag<Tuple2<K, V>> getTuple2ClassTag() {
-    	return (ClassTag<Tuple2<K, V>>)(Object) getClassTag(Tuple2.class);
-    }
-
     public static JobConf newJobConf(PigContext pigContext) throws IOException {
         JobConf jobConf = new JobConf(ConfigurationUtil.toConfiguration(pigContext.getProperties()));
         jobConf.set("pig.pigContext", ObjectSerializer.serialize(pigContext));
         UDFContext.getUDFContext().serialize(jobConf);
         jobConf.set("udf.import.list", ObjectSerializer.serialize(PigContext.getPackageImportList()));
         return jobConf;
-    }
-
-    public static <T> Seq<T> toScalaSeq(List<T> list) {
-        return JavaConversions.asScalaBuffer(list);
     }
 
     public static void assertPredecessorSize(List<RDD<Tuple>> predecessors, PhysicalOperator physicalOperator, int size) {

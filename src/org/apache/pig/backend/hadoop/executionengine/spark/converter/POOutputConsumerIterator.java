@@ -37,22 +37,26 @@ abstract class POOutputConsumerIterator implements java.util.Iterator<Tuple> {
             result = getNextResult();
             returned = false;
             switch (result.returnStatus) {
-            case POStatus.STATUS_OK:
-                returned = false;
-                break;
-            case POStatus.STATUS_NULL:
-                returned = true; // skip: see PigGenericMapBase
-                readNext();
-                break;
-            case POStatus.STATUS_EOP:
-                finished = !input.hasNext();
-                if (!finished) {
-                    result = null;
-                    readNext();
-                }
-                break;
-            case POStatus.STATUS_ERR:
-                throw new RuntimeException("Error while processing "+result);
+            case POStatus.STATUS_OK: {
+            	returned = false;
+            	break;            	
+            }
+            case POStatus.STATUS_NULL: {
+            	returned = true; // skip: see PigGenericMapBase
+            	readNext();
+            	break;            	
+            }
+            case POStatus.STATUS_EOP: {
+            	finished = !input.hasNext();
+            	if (!finished) {
+            		result = null;
+            		readNext();
+            	}
+            	break;
+            }
+            case POStatus.STATUS_ERR: {
+            	throw new RuntimeException("Error while processing "+ result);            	
+            }
             }
         } catch (ExecException e) {
             throw new RuntimeException(e);
@@ -71,11 +75,11 @@ abstract class POOutputConsumerIterator implements java.util.Iterator<Tuple> {
         if (finished) {
             throw new RuntimeException("Passed the end. call hasNext() first");
         }
-        if (result == null || result.returnStatus!=POStatus.STATUS_OK) {
+        if (result == null || result.returnStatus != POStatus.STATUS_OK) {
             throw new RuntimeException("Unexpected response code in ForEach: " + result);
         }
         returned = true;
-        return (Tuple)result.result;
+        return (Tuple) result.result;
     }
 
     @Override

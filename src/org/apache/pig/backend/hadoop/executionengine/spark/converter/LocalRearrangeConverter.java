@@ -10,13 +10,14 @@ import org.apache.pig.backend.executionengine.ExecException;
 import org.apache.pig.backend.hadoop.executionengine.physicalLayer.POStatus;
 import org.apache.pig.backend.hadoop.executionengine.physicalLayer.Result;
 import org.apache.pig.backend.hadoop.executionengine.physicalLayer.relationalOperators.POLocalRearrange;
+import org.apache.pig.backend.hadoop.executionengine.spark.ScalaUtil;
 import org.apache.pig.backend.hadoop.executionengine.spark.SparkUtil;
 import org.apache.pig.data.Tuple;
 import org.apache.spark.rdd.RDD;
 
 import scala.runtime.AbstractFunction1;
 
-@SuppressWarnings({ "serial"})
+@SuppressWarnings({ "serial" })
 public class LocalRearrangeConverter implements POConverter<Tuple, Tuple, POLocalRearrange> {
     private static final Log LOG = LogFactory.getLog(GlobalRearrangeConverter.class);
 
@@ -26,8 +27,7 @@ public class LocalRearrangeConverter implements POConverter<Tuple, Tuple, POLoca
         SparkUtil.assertPredecessorSize(predecessors, physicalOperator, 1);
         RDD<Tuple> rdd = predecessors.get(0);
         // call local rearrange to get key and value
-        return rdd.map(new LocalRearrangeFunction(physicalOperator), SparkUtil.getClassTag(Tuple.class));
-
+        return rdd.map(new LocalRearrangeFunction(physicalOperator), ScalaUtil.getClassTag(Tuple.class));
     }
 
     private static class LocalRearrangeFunction extends AbstractFunction1<Tuple, Tuple> implements Serializable {

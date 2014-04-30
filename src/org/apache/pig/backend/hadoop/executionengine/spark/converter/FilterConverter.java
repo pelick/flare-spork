@@ -25,6 +25,7 @@ public class FilterConverter implements POConverter<Tuple, Tuple, POFilter> {
     public RDD<Tuple> convert(List<RDD<Tuple>> predecessors, POFilter physicalOperator) {
         SparkUtil.assertPredecessorSize(predecessors, physicalOperator, 1);
         RDD<Tuple> rdd = predecessors.get(0);
+        
         FilterFunction filterFunction = new FilterFunction(physicalOperator);
         return rdd.filter(filterFunction);
     }

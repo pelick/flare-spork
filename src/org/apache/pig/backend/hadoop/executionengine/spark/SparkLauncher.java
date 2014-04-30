@@ -76,10 +76,12 @@ public class SparkLauncher extends Launcher {
     @Override
     public PigStats launchPig(PhysicalPlan physicalPlan, String grpName, PigContext pigContext) throws Exception {
         LOG.info("==============  Launching Spark ==============");
+        LOG.info("grpName is " + grpName);
         LOG.info("physicalPlan is " + physicalPlan);
+        
         Configuration c = SparkUtil.newJobConf(pigContext);
-        c.set(PigConstants.LOCAL_CODE_DIR, System.getProperty("java.io.tmpdir"));
-
+        c.set(PigConstants.LOCAL_CODE_DIR, System.getProperty("java.io.tmpdir"));        
+        
         SchemaTupleBackend.initialize(c, pigContext);
 
         // stolen from MapReduceLauncher
@@ -97,7 +99,7 @@ public class SparkLauncher extends Launcher {
 
         // initialize the supported converters
         @SuppressWarnings("rawtypes")
-		Map<Class<? extends PhysicalOperator>, POConverter> convertMap =
+		Map<Class<? extends PhysicalOperator>, POConverter> convertMap = 
 			new HashMap<Class<? extends PhysicalOperator>, POConverter>();
 
         // 对应已经实现的RDD Convertor
@@ -127,7 +129,7 @@ public class SparkLauncher extends Launcher {
     }
 
     /*
-     * 后台支持local或Mesos粗粒度模式
+     * 配置SparkContext及环境变量
      */
     private static void startSparkIfNeeded() throws PigException {
         if (sparkContext == null) {
@@ -139,12 +141,13 @@ public class SparkLauncher extends Launcher {
 
             String sparkHome = System.getenv("SPARK_HOME"); // It's okay if this is null for local mode
             String sparkJarsSetting = System.getenv("SPARK_JARS");
-            String[] sparkJars = sparkJarsSetting == null ? new String[]{} : sparkJarsSetting.split(",");
+            String[] sparkJars = sparkJarsSetting == null ? new String[]{} : sparkJarsSetting.split(","); // why "," ?
 
-            // TODO 暂时写死了这个pig依赖
-            List<String> jars = Lists.asList("build/pig-0.12.0-SNAPSHOT-withdependencies.jar", sparkJars);
+            String pigJar = System.getenv("PIG_JAR"); // "build/pig-0.12.0-SNAPSHOT-withdependencies.jar"
+            List<String> jars = Lists.asList(pigJar, sparkJars);
             
-            if (!master.startsWith("local")) {
+            // 为mesos模式检查环境变量
+            if (master.startsWith("mesos")) {
                 // Check that we have the Mesos native library and Spark home are set
                 if (sparkHome == null) {
                     System.err.println("You need to set SPARK_HOME to run on a Mesos cluster!");
@@ -172,7 +175,7 @@ public class SparkLauncher extends Launcher {
             conf.setMaster(master)
                 .setAppName("Spork")
                 .setSparkHome(sparkHome)
-                .setJars(SparkUtil.toScalaSeq(jars));
+                .setJars(ScalaUtil.toScalaSeq(jars));
             sparkContext = new SparkContext(conf, null);
             //cacheConverter = new CacheConverter();
         }
@@ -190,18 +193,19 @@ public class SparkLauncher extends Launcher {
     @SuppressWarnings({ "rawtypes", "unchecked" })
 	private void physicalToRDD(PhysicalPlan plan, PhysicalOperator physicalOperator,
                                Map<OperatorKey, RDD<Tuple>> rdds,
-                               Map<Class<? extends PhysicalOperator>, POConverter> convertMap)
-            throws IOException {
+                               Map<Class<? extends PhysicalOperator>, POConverter> convertMap) throws IOException {
 
         RDD<Tuple> nextRDD = null;
         List<PhysicalOperator> predecessors = plan.getPredecessors(physicalOperator);
         List<RDD<Tuple>> predecessorRdds = Lists.newArrayList();
-        if (predecessors!=null) {
+        if (predecessors != null) {
+        	// 递归祖先
             for (PhysicalOperator predecessor : predecessors) {
                 physicalToRDD(plan, predecessor, rdds, convertMap);
                 predecessorRdds.add(rdds.get(predecessor.getOperatorKey()));
             }
         }
+        
         // 根据op类型得到具体的convertor类
         POConverter converter = convertMap.get(physicalOperator.getClass());
         if (converter == null) {
