@@ -32,6 +32,7 @@ Then, do some System settings and enable pig in spark mode
 
     export SPARK_HOME=/xx/xx/xx
     export SPARK_JARS=/xx/xx/xx/spark-assembly_2.10-0.9.1-hadoop2.2.0.jar
+    export PIG_JAR=$SPORK_HOME/build/pig-0.12.0-SNAPSHOT-withdependencies.jar
     
     pig -x spark
 
