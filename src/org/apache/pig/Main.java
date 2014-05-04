@@ -153,6 +153,9 @@ public class Main {
  * @throws IOException
  */
 public static void main(String args[]) {
+	// Note by pelick
+	// entrance for local debug
+	// better try: -x spark -e cmds
     System.exit(run(args, null));
 }
 

@@ -19,7 +19,6 @@ package org.apache.pig.backend.hadoop.executionengine.physicalLayer.relationalOp
 
 import java.io.IOException;
 import java.util.List;
-import java.util.LinkedList;
 
 import org.apache.hadoop.mapreduce.Counter;
 import org.apache.pig.PigException;
@@ -37,7 +36,6 @@ import org.apache.pig.impl.io.FileSpec;
 import org.apache.pig.impl.logicalLayer.schema.Schema;
 import org.apache.pig.impl.plan.OperatorKey;
 import org.apache.pig.impl.plan.VisitorException;
-import org.apache.pig.impl.util.IdentityHashSet;
 import org.apache.pig.pen.util.ExampleTuple;
 import org.apache.pig.pen.util.LineageTracer;
 
@@ -227,10 +225,10 @@ public class POStore extends PhysicalOperator {
         return schema;
     }
     
-    
+    // StoreFuncInterface inits here
     public StoreFuncInterface getStoreFunc() {
         if(storer == null){
-            storer = (StoreFuncInterface)PigContext.instantiateFuncFromSpec(sFile.getFuncSpec());
+            storer = (StoreFuncInterface) PigContext.instantiateFuncFromSpec(sFile.getFuncSpec());
             storer.setStoreFuncUDFContextSignature(signature);
         }
         return storer;

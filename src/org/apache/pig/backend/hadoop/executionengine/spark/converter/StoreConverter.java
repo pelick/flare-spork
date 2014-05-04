@@ -50,18 +50,25 @@ public class StoreConverter implements POConverter<Tuple, Tuple2<Text, Tuple>, P
         PairRDDFunctions<Text, Tuple> pairRDDFunctions = 
         		new PairRDDFunctions<Text, Tuple>(rddPairs, ScalaUtil.getClassTag(Text.class), ScalaUtil.getClassTag(Tuple.class));
 
+        // 结果必须存到HDFS上
         JobConf storeJobConf = SparkUtil.newJobConf(pigContext);
         POStore poStore = configureStorer(storeJobConf, physicalOperator);
-
         pairRDDFunctions.saveAsNewAPIHadoopFile(poStore.getSFile().getFileName(), 
         		Text.class, Tuple.class, PigOutputFormat.class, storeJobConf);
 
         return rddPairs;
     }
 
+    /**
+     * 为POStore的storer变量，即StoreFuncInterface，设置参数
+     * @param jobConf
+     * @param physicalOperator
+     * @return
+     * @throws IOException
+     */
     private static POStore configureStorer(JobConf jobConf, PhysicalOperator physicalOperator) throws IOException {
         ArrayList<POStore> storeLocations = Lists.newArrayList();
-        POStore poStore = (POStore)physicalOperator;
+        POStore poStore = (POStore) physicalOperator;
         storeLocations.add(poStore);
         StoreFuncInterface sFunc = poStore.getStoreFunc();
         sFunc.setStoreLocation(poStore.getSFile().getFileName(), new org.apache.hadoop.mapreduce.Job(jobConf));

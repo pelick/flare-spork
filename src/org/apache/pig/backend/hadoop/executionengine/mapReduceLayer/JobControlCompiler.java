@@ -47,7 +47,6 @@ import org.apache.hadoop.io.WritableComparator;
 import org.apache.hadoop.mapred.Counters;
 import org.apache.hadoop.mapred.Counters.Counter;
 import org.apache.hadoop.mapred.Counters.Group;
-import org.apache.hadoop.mapred.JobClient;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.JobPriority;
 import org.apache.hadoop.mapred.jobcontrol.Job;
@@ -417,7 +416,8 @@ public class JobControlCompiler{
      * @throws JobCreationException
      */
     @SuppressWarnings({ "unchecked", "deprecation" })
-    private Job getJob(MROperPlan plan, MapReduceOper mro, Configuration config, PigContext pigContext) throws JobCreationException{
+    private Job getJob(MROperPlan plan, MapReduceOper mro, Configuration config, PigContext pigContext) 
+    		throws JobCreationException{
         org.apache.hadoop.mapreduce.Job nwJob = null;
 
         try{
@@ -465,7 +465,6 @@ public class JobControlCompiler{
         }
 
         try{
-
             //Process the POLoads
             List<POLoad> lds = PlanHelper.getPhysicalOperators(mro.mapPlan, POLoad.class);
 

@@ -57,8 +57,7 @@ import org.apache.pig.impl.util.Utils;
  *  versions of pig, so this should NOT be used to store any persistent data.
  */
 @InterfaceAudience.Private
-public class InterStorage extends FileInputLoadFunc 
-implements StoreFuncInterface, LoadMetadata {
+public class InterStorage extends FileInputLoadFunc implements StoreFuncInterface, LoadMetadata {
 
     private static final Log mLog = LogFactory.getLog(InterStorage.class);
     

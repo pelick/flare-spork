@@ -80,7 +80,7 @@ import org.apache.pig.tools.pigstats.ScriptState;
  * Main class that launches pig for Map Reduce
  *
  */
-public class MapReduceLauncher extends Launcher{
+public class MapReduceLauncher extends Launcher {
 
     public static final String SUCCEEDED_FILE_NAME = "_SUCCESS";
     
@@ -137,7 +137,6 @@ public class MapReduceLauncher extends Launcher{
         super.reset();
     }
    
-    @SuppressWarnings("deprecation")
     @Override
     public PigStats launchPig(PhysicalPlan php,
                               String grpName,
