@@ -371,15 +371,12 @@ public class MRCompiler extends PhyPlanVisitor {
      * @throws PlanException
      * @throws VisitorException
      */
-    private void compile(PhysicalOperator op) throws IOException,
-    PlanException, VisitorException {
-        //An artifact of the Visitor. Need to save
-        //this so that it is not overwritten.
+    private void compile(PhysicalOperator op) throws IOException, PlanException, VisitorException {
+        // An artifact of the Visitor. Need to save this so that it is not overwritten.
         MapReduceOper[] prevCompInp = compiledInputs;
         
-        //Compile each predecessor into the MROper and 
-        //store them away so that we can use them for compiling
-        //op.
+        // Compile each predecessor into the MROper and store them away 
+        // so that we can use them for compiling op.
         List<PhysicalOperator> predecessors = plan.getPredecessors(op);
         if(op instanceof PONative){
             // the predecessor (store) has already been processed
@@ -398,7 +395,7 @@ public class MRCompiler extends PhyPlanVisitor {
 
                 if (predecessors.size() != 1) {
                     int errCode = 2125;
-                    String msg = "Expected at most one predecessor of load. Got "+predecessors.size();
+                    String msg = "Expected at most one predecessor of load. Got " + predecessors.size();
                     throw new PlanException(msg, errCode, PigException.BUG);
                 }
 
@@ -408,7 +405,7 @@ public class MRCompiler extends PhyPlanVisitor {
                     oper = phyToMROpMap.get(p); 
                 }else{
                     int errCode = 2126;
-                    String msg = "Predecessor of load should be a store or mapreduce operator. Got "+p.getClass();
+                    String msg = "Predecessor of load should be a store or mapreduce operator. Got " + p.getClass();
                     throw new PlanException(msg, errCode, PigException.BUG);
                 }
 

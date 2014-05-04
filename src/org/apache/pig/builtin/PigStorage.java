@@ -124,8 +124,8 @@ import org.apache.pig.parser.ParserException;
  *
  */
 @SuppressWarnings("unchecked")
-public class PigStorage extends FileInputLoadFunc implements StoreFuncInterface,
-LoadPushDown, LoadMetadata, StoreMetadata {
+public class PigStorage extends FileInputLoadFunc 
+		implements StoreFuncInterface, LoadPushDown, LoadMetadata, StoreMetadata {
     protected RecordReader in = null;
     protected RecordWriter writer = null;
     protected final Log mLog = LogFactory.getLog(getClass());

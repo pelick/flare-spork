@@ -89,6 +89,8 @@ public class SparkLauncher extends Launcher {
         MRCompiler mrCompiler = new MRCompiler(physicalPlan, pigContext);
         mrCompiler.compile();
         MROperPlan plan = mrCompiler.getMRPlan();
+        // 可以对比物理执行计划翻译成MR执行计划
+        LOG.info("mapreduce plan is " + plan);
         POPackageAnnotator pkgAnnotator = new POPackageAnnotator(plan);
         pkgAnnotator.visit();
         // this one: not sure
@@ -99,29 +101,29 @@ public class SparkLauncher extends Launcher {
 
         // initialize the supported converters
         @SuppressWarnings("rawtypes")
-		Map<Class<? extends PhysicalOperator>, POConverter> convertMap = 
-			new HashMap<Class<? extends PhysicalOperator>, POConverter>();
+		Map<Class<? extends PhysicalOperator>, POConverter> converterMap = 
+				new HashMap<Class<? extends PhysicalOperator>, POConverter>();
 
         // 对应已经实现的RDD Convertor
-        convertMap.put(POLoad.class,    new LoadConverter(pigContext, physicalPlan, sparkContext));
-        convertMap.put(POStore.class,   new StoreConverter(pigContext));
-        convertMap.put(POForEach.class, new ForEachConverter());
-        convertMap.put(POFilter.class,  new FilterConverter());
-        convertMap.put(POPackage.class, new PackageConverter());
-        convertMap.put(POLocalRearrange.class,  new LocalRearrangeConverter());
-        convertMap.put(POGlobalRearrange.class, new GlobalRearrangeConverter());
-        convertMap.put(POLimit.class, new LimitConverter());
-        convertMap.put(PODistinct.class, new DistinctConverter());
-        convertMap.put(POUnion.class, new UnionConverter(sparkContext));
-        convertMap.put(POSort.class, new SortConverter());
-        convertMap.put(POSplit.class, new SplitConverter());
+        converterMap.put(POLoad.class,    new LoadConverter(pigContext, physicalPlan, sparkContext));
+        converterMap.put(POStore.class,   new StoreConverter(pigContext));
+        converterMap.put(POForEach.class, new ForEachConverter());
+        converterMap.put(POFilter.class,  new FilterConverter());
+        converterMap.put(POPackage.class, new PackageConverter());
+        converterMap.put(POLocalRearrange.class,  new LocalRearrangeConverter());
+        converterMap.put(POGlobalRearrange.class, new GlobalRearrangeConverter());
+        converterMap.put(POLimit.class, new LimitConverter());
+        converterMap.put(PODistinct.class, new DistinctConverter());
+        converterMap.put(POUnion.class, new UnionConverter(sparkContext));
+        converterMap.put(POSort.class, new SortConverter());
+        converterMap.put(POSplit.class, new SplitConverter());
 
         Map<OperatorKey, RDD<Tuple>> rdds = new HashMap<OperatorKey, RDD<Tuple>>();
 
         SparkStats stats = new SparkStats();
         LinkedList<POStore> stores = PlanHelper.getPhysicalOperators(physicalPlan, POStore.class);
         for (POStore poStore : stores) {
-            physicalToRDD(physicalPlan, poStore, rdds, convertMap);
+            physicalToRDD(physicalPlan, poStore, rdds, converterMap);
             stats.addOutputInfo(poStore, 1, 1, true, c); // TODO: use real values
         }
 
@@ -137,24 +139,29 @@ public class SparkLauncher extends Launcher {
             if (master == null) {
                 LOG.info("SPARK_MASTER not specified, using \"local\"");
                 master = "local";
+            } else {
+            	LOG.info("SPARK_MASTER is " + master);
             }
 
-            String sparkHome = System.getenv("SPARK_HOME"); // It's okay if this is null for local mode
+            String sparkHome = System.getenv("SPARK_HOME");
+            if (sparkHome == null) {
+                LOG.warn("You need to set SPARK_HOME to run on Spark!");
+            }
             String sparkJarsSetting = System.getenv("SPARK_JARS");
             String[] sparkJars = sparkJarsSetting == null ? new String[]{} : sparkJarsSetting.split(","); // why "," ?
 
-            String pigJar = System.getenv("PIG_JAR"); // "build/pig-0.12.0-SNAPSHOT-withdependencies.jar"
+            String pigJar = System.getenv("PIG_JAR"); // $SPORK_HOME/build/pig-0.12.0-SNAPSHOT-withdependencies.jar
             List<String> jars = Lists.asList(pigJar, sparkJars);
             
             // 为mesos模式检查环境变量
             if (master.startsWith("mesos")) {
                 // Check that we have the Mesos native library and Spark home are set
                 if (sparkHome == null) {
-                    System.err.println("You need to set SPARK_HOME to run on a Mesos cluster!");
+                	LOG.error("You need to set SPARK_HOME to run on a Mesos cluster!");
                     throw new PigException("SPARK_HOME is not set");
                 }
                 if (System.getenv("MESOS_NATIVE_LIBRARY") == null) {
-                    System.err.println("You need to set MESOS_NATIVE_LIBRARY to run on a Mesos cluster!");
+                	LOG.error("You need to set MESOS_NATIVE_LIBRARY to run on a Mesos cluster!");
                     throw new PigException("MESOS_NATIVE_LIBRARY is not set");
                 }
             }
@@ -173,7 +180,7 @@ public class SparkLauncher extends Launcher {
             // scala.collection.mutable.Map<String, String> enviroment = new scala.collection.mutable.HashMap<String, String>();
             SparkConf conf = new SparkConf();
             conf.setMaster(master)
-                .setAppName("Spork")
+                .setAppName("SporkApp")
                 .setSparkHome(sparkHome)
                 .setJars(ScalaUtil.toScalaSeq(jars));
             sparkContext = new SparkContext(conf, null);
@@ -215,7 +222,9 @@ public class SparkLauncher extends Launcher {
         LOG.info("Converting operator " + physicalOperator.getClass().getSimpleName() + " " + physicalOperator);
         nextRDD = converter.convert(predecessorRdds, physicalOperator);
 
+        // 在最后的POStore对应的Convertor里触发了RDDs的执行，并写入指定的地方(通常是HDFS)
         if (POStore.class.equals(physicalOperator.getClass())) {
+        	LOG.info("POStore occurs, physicalToRDD return.");
             return;
         }
 
