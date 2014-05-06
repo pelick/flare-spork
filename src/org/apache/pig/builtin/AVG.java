@@ -100,9 +100,9 @@ public class AVG extends EvalFunc<Double> implements Algebraic, Accumulator<Doub
                 // the column we are trying to avg
                 DataBag bg = (DataBag) input.get(0);
                 DataByteArray dba = null;
-                if(bg.iterator().hasNext()) {
+                if (bg.iterator().hasNext()) {
                     Tuple tp = bg.iterator().next();
-                    dba = (DataByteArray)tp.get(0);
+                    dba = (DataByteArray) tp.get(0);
                 }
                 t.set(0, dba != null ? Double.valueOf(dba.toString()) : null);
                 if (dba == null)
@@ -110,7 +110,7 @@ public class AVG extends EvalFunc<Double> implements Algebraic, Accumulator<Doub
                 else
                     t.set(1, 1L);
                 return t;
-            } catch(NumberFormatException nfe) {
+            } catch (NumberFormatException nfe) {
                 // invalid input,
                 // treat this input as null
                 try {
@@ -126,8 +126,7 @@ public class AVG extends EvalFunc<Double> implements Algebraic, Accumulator<Doub
                 int errCode = 2106;
                 String msg = "Error while computing average in " + this.getClass().getSimpleName();
                 throw new ExecException(msg, errCode, PigException.BUG, e);            
-            }
-                
+            }  
         }
     }
 
@@ -135,7 +134,7 @@ public class AVG extends EvalFunc<Double> implements Algebraic, Accumulator<Doub
         @Override
         public Tuple exec(Tuple input) throws IOException {
             try {
-                DataBag b = (DataBag)input.get(0);
+                DataBag b = (DataBag) input.get(0);
                 return combine(b);
             } catch (ExecException ee) {
                 throw ee;
@@ -152,14 +151,14 @@ public class AVG extends EvalFunc<Double> implements Algebraic, Accumulator<Doub
         @Override
         public Double exec(Tuple input) throws IOException {
             try {
-                DataBag b = (DataBag)input.get(0);
+                DataBag b = (DataBag) input.get(0);
                 Tuple combined = combine(b);
 
-                Double sum = (Double)combined.get(0);
+                Double sum = (Double) combined.get(0);
                 if(sum == null) {
                     return null;
                 }
-                double count = (Long)combined.get(1);
+                double count = (Long) combined.get(1);
 
                 Double avg = null;
                 if (count > 0) {
@@ -190,7 +189,7 @@ public class AVG extends EvalFunc<Double> implements Algebraic, Accumulator<Doub
         boolean sawNonNull = false;
         for (Iterator<Tuple> it = values.iterator(); it.hasNext();) {
             Tuple t = it.next();
-            Double d = (Double)t.get(0);
+            Double d = (Double) t.get(0);
             
             // we count nulls in avg as contributing 0
             // a departure from SQL for performance of 
@@ -202,9 +201,9 @@ public class AVG extends EvalFunc<Double> implements Algebraic, Accumulator<Doub
                 sawNonNull = true;
             }
             sum += d;
-            count += (Long)t.get(1);
+            count += (Long) t.get(1);
         }
-        if(sawNonNull) {
+        if (sawNonNull) {
             output.set(0, new Double(sum));
         } else {
             output.set(0, null);
@@ -213,12 +212,13 @@ public class AVG extends EvalFunc<Double> implements Algebraic, Accumulator<Doub
         return output;
     }
 
-    static protected long count(Tuple input) throws ExecException {
-        DataBag values = (DataBag)input.get(0);
+    @SuppressWarnings("rawtypes")
+	static protected long count(Tuple input) throws ExecException {
+        DataBag values = (DataBag) input.get(0);
         long cnt = 0;
         Iterator it = values.iterator();
         while (it.hasNext()){
-            Tuple t = (Tuple)it.next(); 
+            Tuple t = (Tuple) it.next(); 
             if (t != null && t.size() > 0 && t.get(0) != null)
                 cnt ++;
         }
@@ -227,7 +227,7 @@ public class AVG extends EvalFunc<Double> implements Algebraic, Accumulator<Doub
     }
 
     static protected Double sum(Tuple input) throws ExecException, IOException {
-        DataBag values = (DataBag)input.get(0);
+        DataBag values = (DataBag) input.get(0);
         
         // if we were handed an empty bag, return NULL
         if(values.size() == 0) {
@@ -238,13 +238,13 @@ public class AVG extends EvalFunc<Double> implements Algebraic, Accumulator<Doub
         boolean sawNonNull = false;
         for (Iterator<Tuple> it = values.iterator(); it.hasNext();) {
             Tuple t = it.next();
-            try{
-                DataByteArray dba = (DataByteArray)t.get(0);
+            try {
+                DataByteArray dba = (DataByteArray) t.get(0);
                 Double d = dba != null ? Double.valueOf(dba.toString()) : null;
                 if (d == null) continue;
                 sawNonNull = true;
                 sum += d;
-            }catch(RuntimeException exp) {
+            } catch (RuntimeException exp) {
                 int errCode = 2103;
                 String msg = "Problem while computing sum of doubles.";
                 throw new ExecException(msg, errCode, PigException.BUG, exp);
@@ -295,7 +295,7 @@ public class AVG extends EvalFunc<Double> implements Algebraic, Accumulator<Doub
                 intermediateCount = 0.0;
             }
             
-            double count = (Long)count(b);
+            double count = (Long) count(b);
 
             if (count > 0) {
                 intermediateCount += count;
