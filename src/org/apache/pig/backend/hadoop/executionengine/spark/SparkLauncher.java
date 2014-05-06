@@ -146,8 +146,6 @@ public class SparkLauncher extends Launcher {
             String sparkHome = System.getenv("SPARK_HOME");
             if (sparkHome == null) {
                 LOG.warn("You need to set SPARK_HOME to run on Spark!");
-                // TODO for win local
-                sparkHome = "D:/develop/spark-0.9.1-bin-hadoop2";
             }
             String sparkJarsSetting = System.getenv("SPARK_JARS");
             String[] sparkJars = sparkJarsSetting == null ? new String[]{} : sparkJarsSetting.split(","); // why "," ?

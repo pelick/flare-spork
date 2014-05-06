@@ -156,7 +156,6 @@ public static void main(String args[]) {
 	// add win HADOOP_HOME
 	// make sure you have "winutils.exe" under /bin
 	// if not, download one from https://github.com/srccodes/hadoop-common-2.2.0-bin/tree/master/bin
-	System.setProperty("hadoop.home.dir", "D:/develop/hadoop-2.2.0");
 	
 	// entrance for local debug
 	// better try: -x spark -e cmds
