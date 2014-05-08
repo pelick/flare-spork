@@ -38,8 +38,8 @@ public class ObjectSerializer {
         try {
             ByteArrayOutputStream serialObj = new ByteArrayOutputStream();
             Deflater def = new Deflater(Deflater.BEST_COMPRESSION);
-            ObjectOutputStream objStream = new ObjectOutputStream(new DeflaterOutputStream(
-                    serialObj, def));
+            ObjectOutputStream objStream = 
+            		new ObjectOutputStream(new DeflaterOutputStream(serialObj, def));
             objStream.writeObject(obj);
             objStream.close();
             return encodeBytes(serialObj.toByteArray());

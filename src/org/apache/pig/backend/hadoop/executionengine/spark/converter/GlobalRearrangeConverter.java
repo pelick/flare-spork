@@ -38,7 +38,8 @@ public class GlobalRearrangeConverter implements POConverter<Tuple, Tuple, POGlo
     private static final GroupTupleFunction GROUP_TUPLE_FUNCTION = new GroupTupleFunction();
     private static final ToGroupKeyValueFunction TO_GROUP_KEY_VALUE_FUNCTION = new ToGroupKeyValueFunction();
 
-    @Override
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+	@Override
     public RDD<Tuple> convert(List<RDD<Tuple>> predecessors, POGlobalRearrange physicalOperator) throws IOException {
         SparkUtil.assertPredecessorSizeGreaterThan(predecessors, physicalOperator, 0);
         int parallelism = SparkUtil.getParallelism(predecessors, physicalOperator);
@@ -59,12 +60,11 @@ public class GlobalRearrangeConverter implements POConverter<Tuple, Tuple, POGlo
 
             List<RDD<Tuple2<Object, Tuple>>> rddPairs = Lists.newArrayList();
             for (RDD<Tuple> rdd : predecessors) {
+            	// (key, value)
                 RDD<Tuple2<Object, Tuple>> rddPair = rdd.map(TO_KEY_VALUE_FUNCTION, tuple2ClassTag);
                 rddPairs.add(rddPair);
             }
 
-            // Something's wrong with the type parameters of CoGroupedRDD
-            // key and value are the same type ???
             CoGroupedRDD<Object> coGroupedRDD = new CoGroupedRDD<Object>(
             		(Seq) JavaConversions.asScalaBuffer(rddPairs), new HashPartitioner(parallelism));
 
@@ -78,10 +78,10 @@ public class GlobalRearrangeConverter implements POConverter<Tuple, Tuple, POGlo
         @Override
         public Object apply(Tuple t) {
             try {
-                LOG.debug("GetKeyFunction in "+t);
+                LOG.debug("GetKeyFunction in " + t);
                 // see PigGenericMapReduce For the key
                 Object key = t.get(1);
-                LOG.debug("GetKeyFunction out "+key);
+                LOG.debug("GetKeyFunction out " + key);
                 return key;
             } catch (ExecException e) {
                 throw new RuntimeException(e);
@@ -94,11 +94,11 @@ public class GlobalRearrangeConverter implements POConverter<Tuple, Tuple, POGlo
         @Override
         public Tuple apply(Tuple2<Object, Seq<Tuple>> v1) {
             try {
-                LOG.debug("GroupTupleFunction in "+v1);
+                LOG.debug("GroupTupleFunction in " + v1);
                 Tuple tuple = tf.newTuple(2);
                 tuple.set(0, v1._1()); // the (index, key) tuple
                 tuple.set(1, JavaConversions.asJavaCollection(v1._2()).iterator()); // the Seq<Tuple> aka bag of values
-                LOG.debug("GroupTupleFunction out "+tuple);
+                LOG.debug("GroupTupleFunction out " + tuple);
                 return tuple;
             } catch (ExecException e) {
                 throw new RuntimeException(e);
@@ -112,12 +112,12 @@ public class GlobalRearrangeConverter implements POConverter<Tuple, Tuple, POGlo
         public Tuple2<Object, Tuple> apply(Tuple t) {
             try {
                 // (index, key, value)
-                LOG.debug("ToKeyValueFunction in "+ t);
+                LOG.debug("ToKeyValueFunction in " + t);
                 Object key = t.get(1);
-                Tuple value = (Tuple)t.get(2);
+                Tuple value = (Tuple) t.get(2);
                 // (key, value)
                 Tuple2<Object, Tuple> out = new Tuple2<Object, Tuple>(key, value);
-                LOG.debug("ToKeyValueFunction out "+ out);
+                LOG.debug("ToKeyValueFunction out " + out);
                 return out;
             } catch (ExecException e) {
                 throw new RuntimeException(e);
@@ -130,7 +130,7 @@ public class GlobalRearrangeConverter implements POConverter<Tuple, Tuple, POGlo
         @Override
         public Tuple apply(Tuple2<Object, Seq<Seq<Tuple>>> input) {
             try {
-                LOG.debug("ToGroupKeyValueFunction2 in "+input);
+                LOG.debug("ToGroupKeyValueFunction2 in " + input);
                 final Object key = input._1();
                 Seq<Seq<Tuple>> bags = input._2();
                 Iterable<Seq<Tuple>> bagsList = JavaConversions.asJavaIterable(bags);
@@ -158,7 +158,7 @@ public class GlobalRearrangeConverter implements POConverter<Tuple, Tuple, POGlo
                 Tuple out = tf.newTuple(2);
                 out.set(0, key);
                 out.set(1, new IteratorUnion<Tuple>(tupleIterators.iterator()));
-                LOG.debug("ToGroupKeyValueFunction2 out "+ out);
+                LOG.debug("ToGroupKeyValueFunction2 out " + out);
                 return out;
             } catch(Exception e) {
                 throw new RuntimeException(e);

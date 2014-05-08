@@ -26,8 +26,7 @@ public class SortConverter implements POConverter<Tuple, Tuple, POSort> {
     private static final ToValueFuction TO_VALUE_FUCTION = new ToValueFuction();
 
     @Override
-    public RDD<Tuple> convert(List<RDD<Tuple>> predecessors, POSort sortOperator)
-            throws IOException {
+    public RDD<Tuple> convert(List<RDD<Tuple>> predecessors, POSort sortOperator) throws IOException {
         SparkUtil.assertPredecessorSize(predecessors, sortOperator, 1);
         RDD<Tuple> rdd = predecessors.get(0);
         RDD<Tuple2<Tuple, Object>> rddPair =
@@ -60,7 +59,8 @@ public class SortConverter implements POConverter<Tuple, Tuple, POSort> {
     }
 
     @SuppressWarnings("serial")
-	private static class ToValueFuction extends AbstractFunction1<Iterator<Tuple2<Tuple, Object>>, Iterator<Tuple>> implements Serializable {
+	private static class ToValueFuction extends AbstractFunction1<Iterator<Tuple2<Tuple, Object>>, Iterator<Tuple>> 
+    		implements Serializable {
         @Override
         public Iterator<Tuple> apply(Iterator<Tuple2<Tuple, Object>> input) {
             return JavaConversions.asScalaIterator(new IteratorTransform<Tuple2<Tuple, Object>, Tuple>(JavaConversions.asJavaIterator(input)) {
@@ -120,14 +120,14 @@ public class SortConverter implements POConverter<Tuple, Tuple, POSort> {
         @Override
         public Tuple2<Tuple, Object> apply(Tuple t) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Sort ToKeyValueFunction in "+t);
+                LOG.debug("Sort ToKeyValueFunction in " + t);
             }
             Tuple key = t;
             Object value = null;
             // (key, value)
             Tuple2<Tuple, Object> out = new Tuple2<Tuple, Object>(key, value);
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Sort ToKeyValueFunction out "+out);
+                LOG.debug("Sort ToKeyValueFunction out " + out);
             }
             return out;
         }

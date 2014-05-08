@@ -45,7 +45,7 @@ public class StoreConverter implements POConverter<Tuple, Tuple2<Text, Tuple>, P
     public RDD<Tuple2<Text, Tuple>> convert(List<RDD<Tuple>> predecessors, POStore physicalOperator) throws IOException {
         SparkUtil.assertPredecessorSize(predecessors, physicalOperator, 1);
         RDD<Tuple> rdd = predecessors.get(0);
-        // convert back to KV pairs
+        // convert to KV pairs, K is empty
         RDD<Tuple2<Text, Tuple>> rddPairs = rdd.map(FROM_TUPLE_FUNCTION, ScalaUtil.<Text, Tuple>getTuple2ClassTag());
         PairRDDFunctions<Text, Tuple> pairRDDFunctions = 
         		new PairRDDFunctions<Text, Tuple>(rddPairs, ScalaUtil.getClassTag(Text.class), ScalaUtil.getClassTag(Tuple.class));
@@ -53,8 +53,12 @@ public class StoreConverter implements POConverter<Tuple, Tuple2<Text, Tuple>, P
         // 结果必须存到HDFS上
         JobConf storeJobConf = SparkUtil.newJobConf(pigContext);
         POStore poStore = configureStorer(storeJobConf, physicalOperator);
-        pairRDDFunctions.saveAsNewAPIHadoopFile(poStore.getSFile().getFileName(), 
-        		Text.class, Tuple.class, PigOutputFormat.class, storeJobConf);
+        pairRDDFunctions.saveAsNewAPIHadoopFile(
+        		poStore.getSFile().getFileName(), 
+        		Text.class, 
+        		Tuple.class, 
+        		PigOutputFormat.class, 
+        		storeJobConf);
 
         return rddPairs;
     }

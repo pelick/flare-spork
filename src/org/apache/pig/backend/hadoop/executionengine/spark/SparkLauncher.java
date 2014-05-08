@@ -105,18 +105,18 @@ public class SparkLauncher extends Launcher {
 				new HashMap<Class<? extends PhysicalOperator>, POConverter>();
 
         // 对应已经实现的RDD Convertor
-        converterMap.put(POLoad.class,    new LoadConverter(pigContext, physicalPlan, sparkContext));
-        converterMap.put(POStore.class,   new StoreConverter(pigContext));
-        converterMap.put(POForEach.class, new ForEachConverter());
-        converterMap.put(POFilter.class,  new FilterConverter());
-        converterMap.put(POPackage.class, new PackageConverter());
+        converterMap.put(POLoad.class,            new LoadConverter(pigContext, physicalPlan, sparkContext));
+        converterMap.put(POStore.class,           new StoreConverter(pigContext));
+        converterMap.put(POForEach.class,         new ForEachConverter());
+        converterMap.put(POFilter.class,          new FilterConverter());
+        converterMap.put(POPackage.class,         new PackageConverter());
         converterMap.put(POLocalRearrange.class,  new LocalRearrangeConverter());
         converterMap.put(POGlobalRearrange.class, new GlobalRearrangeConverter());
-        converterMap.put(POLimit.class, new LimitConverter());
-        converterMap.put(PODistinct.class, new DistinctConverter());
-        converterMap.put(POUnion.class, new UnionConverter(sparkContext));
-        converterMap.put(POSort.class, new SortConverter());
-        converterMap.put(POSplit.class, new SplitConverter());
+        converterMap.put(POLimit.class,           new LimitConverter());
+        converterMap.put(PODistinct.class,        new DistinctConverter());
+        converterMap.put(POUnion.class,           new UnionConverter(sparkContext));
+        converterMap.put(POSort.class,            new SortConverter());
+        converterMap.put(POSplit.class,           new SplitConverter());
 
         Map<OperatorKey, RDD<Tuple>> rdds = new HashMap<OperatorKey, RDD<Tuple>>();
 

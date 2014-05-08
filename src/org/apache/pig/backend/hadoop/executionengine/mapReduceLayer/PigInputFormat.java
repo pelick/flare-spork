@@ -19,11 +19,7 @@ package org.apache.pig.backend.hadoop.executionengine.mapReduceLayer;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.HashSet;
-import java.util.HashMap;
-import java.util.Comparator;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -36,7 +32,6 @@ import org.apache.hadoop.mapreduce.InputFormat;
 import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.JobContext;
-import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.pig.ExecType;
 import org.apache.pig.FuncSpec;
@@ -54,13 +49,11 @@ import org.apache.pig.impl.PigContext;
 import org.apache.pig.impl.io.FileSpec;
 import org.apache.pig.impl.plan.OperatorKey;
 import org.apache.pig.impl.util.ObjectSerializer;
-import org.apache.pig.impl.util.Pair;
 import org.apache.pig.impl.util.UDFContext;
 
 public class PigInputFormat extends InputFormat<Text, Tuple> {
 
-    public static final Log log = LogFactory
-            .getLog(PigInputFormat.class);
+    public static final Log log = LogFactory.getLog(PigInputFormat.class);
 
     private static final PathFilter hiddenFileFilter = new PathFilter() {
         public boolean accept(Path p) {
@@ -82,11 +75,11 @@ public class PigInputFormat extends InputFormat<Text, Tuple> {
     /* (non-Javadoc)
      * @see org.apache.hadoop.mapreduce.InputFormat#createRecordReader(org.apache.hadoop.mapreduce.InputSplit, org.apache.hadoop.mapreduce.TaskAttemptContext)
      */
-    @Override
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+	@Override
     public org.apache.hadoop.mapreduce.RecordReader<Text, Tuple> createRecordReader(
             org.apache.hadoop.mapreduce.InputSplit split,
-            TaskAttemptContext context) throws IOException,
-            InterruptedException {
+            TaskAttemptContext context) throws IOException, InterruptedException {
         // We need to create a TaskAttemptContext based on the Configuration which
         // was used in the getSplits() to produce the split supplied here. For 
         // this, let's find out the input of the script which produced the split
@@ -94,7 +87,7 @@ public class PigInputFormat extends InputFormat<Text, Tuple> {
         // TaskAttemptContext based on it and then call the real InputFormat's
         // createRecordReader() method
         
-        PigSplit pigSplit = (PigSplit)split;
+        PigSplit pigSplit = (PigSplit) split;
         activeSplit = pigSplit;
         // XXX hadoop 20 new API integration: get around a hadoop 20 bug by 
         // passing total # of splits to each split so it can be retrieved 
@@ -117,8 +110,7 @@ public class PigInputFormat extends InputFormat<Text, Tuple> {
         InputFormat inputFormat = loadFunc.getInputFormat();
         
         List<Long> inpLimitLists = 
-                (ArrayList<Long>)ObjectSerializer.deserialize(
-                        conf.get("pig.inpLimits"));
+                (ArrayList<Long>) ObjectSerializer.deserialize(conf.get("pig.inpLimits"));
         
         return new PigRecordReader(inputFormat, pigSplit, loadFunc, context, inpLimitLists.get(pigSplit.getInputIndex()));
     }

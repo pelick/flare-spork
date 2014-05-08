@@ -19,6 +19,11 @@ package org.apache.pig.backend.hadoop.executionengine.physicalLayer;
 
 import java.io.Serializable;
 
+/**
+ * 处理结果数据 + 返回值
+ * @author zhangbaofeng
+ *
+ */
 public class Result implements Serializable {
     /**
      * 
@@ -31,7 +36,6 @@ public class Result implements Serializable {
      * to put a meaning error message which will be 
      * printed out in the final message shown to the user
      */
-    
     public byte returnStatus;
 
     public Object result;
