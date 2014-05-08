@@ -20,6 +20,11 @@ import org.apache.spark.rdd.RDD;
 
 import scala.runtime.AbstractFunction1;
 
+/**
+ * Package will generate the group from the result of the global rearrange
+ * @author zhangbaofeng
+ *
+ */
 @SuppressWarnings({ "serial" })
 public class PackageConverter implements POConverter<Tuple, Tuple, POPackage> {
     private static final Log LOG = LogFactory.getLog(PackageConverter.class);
@@ -29,7 +34,6 @@ public class PackageConverter implements POConverter<Tuple, Tuple, POPackage> {
             throws IOException {
         SparkUtil.assertPredecessorSize(predecessors, physicalOperator, 1);
         RDD<Tuple> rdd = predecessors.get(0);
-        // package will generate the group from the result of the local rearrange
         return rdd.map(new PackageFunction(physicalOperator), ScalaUtil.getClassTag(Tuple.class));
     }
 
@@ -41,14 +45,17 @@ public class PackageConverter implements POConverter<Tuple, Tuple, POPackage> {
             this.physicalOperator = physicalOperator;
         }
 
-        @Override
+        @SuppressWarnings("unchecked")
+		@Override
         public Tuple apply(final Tuple t) {
             // (key, Seq<Tuple>:{(index, key, value without key)})
-            if (LOG.isDebugEnabled())
-                LOG.debug("PackageFunction in "+t);
+            if (LOG.isDebugEnabled()) {
+            	LOG.debug("PackageFunction in " + t);
+            }
+            
             Result result;
             try {
-                PigNullableWritable key = new PigNullableWritable() {
+                PigNullableWritable key = new PigNullableWritable() { // Key
                     public Object getValueAsPigType() {
                         try {
                             Object keyTuple = t.get(0);
@@ -59,7 +66,7 @@ public class PackageConverter implements POConverter<Tuple, Tuple, POPackage> {
                     }
                 };
                 
-                final Iterator<Tuple> bagIterator = (Iterator<Tuple>) t.get(1);
+                final Iterator<Tuple> bagIterator = (Iterator<Tuple>) t.get(1); // Seq<Tuple>:{(index, key, value without key)}
                 Iterator<NullableTuple> iterator = new Iterator<NullableTuple>() {
                     public boolean hasNext() {
                         return bagIterator.hasNext();
@@ -69,8 +76,8 @@ public class PackageConverter implements POConverter<Tuple, Tuple, POPackage> {
                         try {
                             // we want the value and index only
                             Tuple next = bagIterator.next();
-                            NullableTuple nullableTuple = new NullableTuple((Tuple)next.get(2));
-                            nullableTuple.setIndex(((Number)next.get(0)).byteValue());
+                            NullableTuple nullableTuple = new NullableTuple((Tuple) next.get(2)); // value
+                            nullableTuple.setIndex(((Number) next.get(0)).byteValue());           // index
                             return nullableTuple;
                         } catch (ExecException e) {
                             throw new RuntimeException(e);

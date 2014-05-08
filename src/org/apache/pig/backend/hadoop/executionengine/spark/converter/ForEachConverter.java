@@ -15,9 +15,8 @@ import scala.collection.Iterator;
 import scala.collection.JavaConversions;
 import scala.runtime.AbstractFunction1;
 
-
 /**
- * Convert that is able to convert an RRD to another RRD using a POForEach
+ * Convert that is able to convert an RDD to another RDD using a POForEach
  * @author billg
  */
 public class ForEachConverter implements POConverter<Tuple, Tuple, POForEach> {

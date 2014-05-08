@@ -18,7 +18,7 @@ import scala.runtime.AbstractFunction1;
  * Converter that converts an RDD to a filtered RRD using POFilter
  * @author billg
  */
-@SuppressWarnings({ "serial"})
+@SuppressWarnings({ "serial" })
 public class FilterConverter implements POConverter<Tuple, Tuple, POFilter> {
 
     @Override

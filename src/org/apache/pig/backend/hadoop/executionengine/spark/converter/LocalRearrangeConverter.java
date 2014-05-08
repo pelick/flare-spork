@@ -53,12 +53,13 @@ public class LocalRearrangeConverter implements POConverter<Tuple, Tuple, POLoca
                 switch (result.returnStatus) {
                 case POStatus.STATUS_OK:
                     // (index, key, value without keys)
-                    Tuple resultTuple = (Tuple)result.result;
-                    if (LOG.isDebugEnabled())
-                        LOG.debug("LocalRearrangeFunction out "+resultTuple);
+                    Tuple resultTuple = (Tuple) result.result;
+                    if (LOG.isDebugEnabled()) {
+                    	LOG.debug("LocalRearrangeFunction out " + resultTuple);
+                    }
                     return resultTuple;
                 default:
-                    throw new RuntimeException("Unexpected response code from operator "+physicalOperator+" : " + result);
+                    throw new RuntimeException("Unexpected response code from operator "+ physicalOperator + " : " + result);
                 }
             } catch (ExecException e) {
                 throw new RuntimeException("Couldn't do LocalRearange on tuple: " + t, e);

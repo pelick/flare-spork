@@ -19,6 +19,12 @@ import java.util.List;
  */
 public class SparkUtil {
 	
+	/**
+	 * 提取出PigContext里的KV配置和udf包
+	 * @param pigContext
+	 * @return
+	 * @throws IOException
+	 */
     public static JobConf newJobConf(PigContext pigContext) throws IOException {
         JobConf jobConf = new JobConf(ConfigurationUtil.toConfiguration(pigContext.getProperties()));
         jobConf.set("pig.pigContext", ObjectSerializer.serialize(pigContext));
